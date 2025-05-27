@@ -15,7 +15,16 @@ class HomeController extends Controller
 
 	public function index()
 	{
-		return $this->json('This is the public function of home controller');
+        http_response_code(404);
+        header('Content-Type: application/json');
+
+        echo json_encode([
+            'status' => 'error',
+            'code' => 404,
+            'message' => 'Not found',
+            'data' => null
+        ]);
+        exit;
 	}
 
 	public function post($value)

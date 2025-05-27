@@ -181,7 +181,7 @@ class TicketsController extends Controller
             ],404);
         }
         $data = [
-            'user_id' => 2
+            'user_id' => $_SESSION['logged_in_user']->id
         ];
 
         $updateDetails = $ticket->updateTicket($data,$id);

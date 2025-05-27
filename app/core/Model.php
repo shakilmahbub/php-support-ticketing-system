@@ -31,10 +31,13 @@ class Model
 
 		$keys = implode(',',array_keys($data));
 
-		$isterteddata = Db::connection()->query("INSERT INTO $table ($keys) VALUES ($values)");
+		$isterteddata = Db::connection();
+        $isterteddata->query("INSERT INTO $table ($keys) VALUES ($values)");
 
+        $id = $isterteddata->lastInsertId();
 
-		return true;
+        $lastdata = $this->single($table,$id);
+		return $lastdata;
 	}
 
 	protected function update($table,$data,$id)
@@ -52,11 +55,10 @@ class Model
 		$newsetvalue = substr($setvalue, 0, -1);
 //		 return $newsetvalue;
 
-		$isterteddata = Db::connection()->query("UPDATE $table
-		SET $newsetvalue
-		where id=".$id);
+        Db::connection()->query("UPDATE $table SET $newsetvalue where id=".$id);
+        $isterteddata = $this->single($table,$id);
 
-		return true;
+		return $isterteddata;
 	}
 
 

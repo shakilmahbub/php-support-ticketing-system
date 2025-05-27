@@ -104,15 +104,26 @@ class UserController extends Controller
         {
             if (password_verify($value['password'],$userdetails->password))
             {
+                $token = bin2hex(random_bytes(16 / 2));
+
+                $hashtoken = md5($token);
+                $date = date('Y-m-d H:i:s');
+                Db::connection()->query("INSERT INTO tokens (`token`,`user_id`,`created_at`) VALUES ('$hashtoken','$userdetails->id','$date')");
+
+
                 return $this->json([
-                    'status' => 'Login successful',
-                    'data' => ['token' => rand(10000000,99999999)]
+                    'status' => 'success',
+                    'message' => 'Login successful',
+                    'data' => [
+                        'token' => $token,
+                        'user' => $userdetails
+                    ]
                 ]);
             }
         }
         else
         {
-            return $this->json('No user found');
+            return $this->json('Invalid login details!');
         }
 
     }
@@ -120,7 +131,34 @@ class UserController extends Controller
 
     public function logout()
     {
-        return $this->json('Logout successful');
+        $headers = getallheaders();
+
+        if (!isset($headers['Authorization']))
+        {
+            return $this->json('Invalid details!');
+        }
+
+        $token = str_replace('Bearer ','',$headers['Authorization']);
+        $hashtoken = md5($token);
+        $user = new User;
+
+        $query = Db::connection()->query("SELECT * FROM tokens WHERE token ='$hashtoken'" );
+        $userdetails = $query->fetch(PDO::FETCH_OBJ);
+
+        if ($userdetails)
+        {
+                Db::connection()->query("DELETE FROM tokens WHERE token = '$hashtoken'");
+
+                return $this->json([
+                    'status' => 'success',
+                    'message' => 'Logout successful',
+                    'data' => []
+                ]);
+        }
+        else
+        {
+            return $this->json('Invalid login details!');
+        }
     }
 }
 

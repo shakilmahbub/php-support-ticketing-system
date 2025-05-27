@@ -9,58 +9,100 @@ class App
 	protected $method = 'index';
 	protected $perams = [];
 
+    protected $protectedRoute = 1;
 
 	public function __construct()
 	{
+        // start middleware
+//        $middleware = new Middleware(['token']);
 
 		$urls = $this->parse_url();
 
-	
-		if (isset($urls[0]) && file_exists('../app/controller/'.ucfirst($urls[0]).'Controller.php')) {
+        $routes = Route::$routes;
+        foreach ($routes as $key => $route)
+        {
+            $func = '';
+            $link = explode('/',$route['route']);
+            if ($urls[0] == $link[0])
+            {
+                if ($_SERVER['REQUEST_METHOD'] == $route['method'])
+                {
+                    if (count($urls) == count($link)){
+                        if (isset($urls[2]))
+                        {
+                            if ($urls[2] == $link[2])
+                            {
+                                $this->controller = $route['controller'];
+                                $this->method = $route['function'];
+                            }
+                            else
+                            {
+                                http_response_code(404);
+                                header('Content-Type: application/json');
 
-		
-			$this->controller = ucfirst($urls[0]).'Controller';
+                                echo json_encode([
+                                    'status' => 'error',
+                                    'code' => 404,
+                                    'message' => 'Not found',
+                                    'data' => null
+                                ]);
+                                exit;
+                            }
+                        }
+                        else{
+                            $this->controller = $route['controller'];
+                            $this->method = $route['function'];
+                        }
 
-			unset($urls[0]);
+                        if (isset($route['protection_type']) && $route['protection_type'] == 'public')
+                        {
+                            $this->protectedRoute = 0;
+                        }
+                    }
+                }
+            }
 
-		}
+        }
+        if ($this->protectedRoute)
+        {
+            new Middleware(['token']);
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($urls[1])) {
+            $this->perams = isset($urls[1]) ? [$urls[1]] : null;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->perams = [$_POST];
+        }
 
-		require_once '../app/controller/'.$this->controller.'.php';
+        if ($_SERVER['REQUEST_METHOD'] === 'PUT' || $_SERVER['REQUEST_METHOD'] === 'PATCH') {
+            $data = (array) json_decode(file_get_contents("php://input"), true);
 
-		$this->controller = new $this->controller;
 
-		if (isset($urls[1])) {
-			
-			if (method_exists($this->controller, $urls[1])) {
+            $this->perams = [$data,isset($urls[1]) ? $urls[1] : null];
+        }
 
-				$this->method = $urls[1];
-				unset($urls[1]);
-			}
-			
-		}
+        if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+            $this->perams = isset($urls[1]) ? [$urls[1]] : null;
+        }
+        try {
+            require_once '../app/controller/'.$this->controller.'.php';
+            $this->controller = new $this->controller;
+            call_user_func_array([$this->controller, $this->method], $this->perams);
+        }
+        catch (Exception $e)
+        {
+            http_response_code(500);
+            header('Content-Type: application/json');
 
-		$this->perams = $urls ? array_values($urls) : [];
+            echo json_encode([
+                'status' => 'error',
+                'code' => 500,
+                'message' => 'Opps! Something went wrong!',
+                'data' => null
+            ]);
+            exit;
+        }
 
-		if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($urls[2])) {
-			$this->perams = isset($urls[2]) ? [$urls[2]] : null;
-		}
-		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-			$this->perams = [$_POST];
-		}
-
-		if ($_SERVER['REQUEST_METHOD'] === 'PUT' || $_SERVER['REQUEST_METHOD'] === 'PATCH') {
-			$data = (array) json_decode(file_get_contents("php://input"), true);
-
-		
-			$this->perams = [$data,isset($urls[2]) ? $urls[2] : null];
-		}
-
-		if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-			$this->perams = isset($urls[2]) ? [$urls[2]] : null;
-		}
-
-		call_user_func_array([$this->controller, $this->method], $this->perams);
-		
 	}
 
 

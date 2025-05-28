@@ -17,21 +17,26 @@ class User extends Model
 	{
 		$users = $this->getall($this->table);
 
+        $users = array_map(function($user) {
+            unset($user->password);
+            return $user;
+        }, $users);
+
 		return $users;
 	}
 
 	public function user($id)
 	{
-		$users = $this->single($this->table,$id);
-
-		return $users;
+		$user = $this->single($this->table,$id);
+        unset($user->password);
+		return $user;
 	}
 
 
 	public function createuser($data)
 	{
 		$entry = $this->create($this->table,$data);
-
+        unset($entry->password);
 		return $entry;
 	}
 
@@ -47,7 +52,7 @@ class User extends Model
 	public function updateuser($data, $id)
 	{
 		$entry = $this->update($this->table, $data, $id);
-
+        unset($entry->password);
 		return $entry;
 	}
 

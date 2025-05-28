@@ -35,19 +35,6 @@ class App
                                 $this->controller = $route['controller'];
                                 $this->method = $route['function'];
                             }
-                            else
-                            {
-                                http_response_code(404);
-                                header('Content-Type: application/json');
-
-                                echo json_encode([
-                                    'status' => 'error',
-                                    'code' => 404,
-                                    'message' => 'Not found',
-                                    'data' => null
-                                ]);
-                                exit;
-                            }
                         }
                         else{
                             $this->controller = $route['controller'];

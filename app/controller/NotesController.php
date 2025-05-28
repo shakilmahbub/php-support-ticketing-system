@@ -31,11 +31,6 @@ class NotesController extends Controller
             $errors = true;
             $message[] = 'Note is required';
         }
-        if (!isset($values['user_id']))
-        {
-            $errors = true;
-            $message[] = 'User id is required';
-        }
         if (!isset($values['ticket_id']))
         {
             $errors = true;
@@ -56,7 +51,7 @@ class NotesController extends Controller
         $data = [
             'note' => isset($values['note']) ? $values['note']: null,
             'ticket_id' => isset($values['ticket_id']) ? $values['ticket_id']: null,
-            'user_id' => isset($values['user_id']) ? $values['user_id']: null,
+            'user_id' => $_SESSION['logged_in_user']->id,
             'created_at' => date('Y-m-d H:i:s')
         ];
 
@@ -99,7 +94,7 @@ class NotesController extends Controller
         ]);
     }
 
-    public function update($post,$id)
+    public function update($values,$id)
     {
         $note = new Notes;
 
@@ -109,7 +104,7 @@ class NotesController extends Controller
         {
             return $this->json([
                 'status' => 'error',
-                'message' => 'Not found',
+                'message' => 'Note Not found',
                 'data' => [
                     'note' => []
                 ]
@@ -118,8 +113,7 @@ class NotesController extends Controller
 
         $data = [
             'note' => isset($values['note']) ? $values['note']: null,
-            'ticket_id' => isset($values['ticket_id']) ? $values['ticket_id']: null,
-            'user_id' => isset($values['user_id']) ? $values['user_id']: null
+            'ticket_id' => isset($values['ticket_id']) ? $values['ticket_id']: null
         ];
 
         $updateDetails = $note->updatenote($data,$id);

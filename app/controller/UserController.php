@@ -13,7 +13,13 @@ class UserController extends Controller
 
 		$singleuser = $user->user($id);
 
-		return $this->json($singleuser);
+		return $this->json([
+            'status' => 'success',
+            'message' => 'Note created successfully',
+            'data' => [
+                'user' => $singleuser
+            ]
+        ]);
 	}
 	public function getuser()
 	{
@@ -21,10 +27,16 @@ class UserController extends Controller
 
 		$allusers = $users->users();
 
-		return $this->json($allusers);
+        return $this->json([
+            'status' => 'success',
+            'message' => 'Users list',
+            'data' => [
+                'users' => $allusers
+            ]
+        ]);
 	}
 
-	public function distroy($id)
+	public function destroy($id)
 	{
 		if (!$id) {
 			return $this->json('Please provide an id',400);
@@ -34,16 +46,49 @@ class UserController extends Controller
 
 		$user->deleteuser($id);
 
-		return $this->json('User deleted successful', 204);
+		return $this->json([
+            'status' => 'success',
+            'message' => 'Note deleted successfully',
+            'data' => []
+        ], 200);
 	}
 
 
-	public function post($value)
+	public function store($value)
 	{
+        $errors = false;
+        $message = [];
+        if (!isset($value['name']))
+        {
+            $errors = true;
+            $message[] = 'Name is required';
+        }
+        if (!isset($value['email']))
+        {
+            $errors = true;
+            $message[] = 'Email is required';
+        }
+        if (!isset($value['password']))
+        {
+            $errors = true;
+            $message[] = 'Password is required';
+        }
+
+        if ($errors)
+        {
+            return $this->json([
+                'status' => 'error',
+                'message' => $message,
+                'data' => [
+                    'user' => []
+                ]
+            ],422);
+        }
 		$data = [
-			'name' => $value['name'],
-			'email' => $value['email'],
-			'address' => $value['password']
+            'name' => isset($value['name']) ? $value['name']: null,
+            'email' => $value['email'] ? $value['email']: null,
+            'password' => isset($value['password']) ? password_hash($value['password'], PASSWORD_BCRYPT): null,
+            'role' => isset($value['role']) ? $value['role']: null
 		];
 
 
@@ -51,12 +96,14 @@ class UserController extends Controller
 
 		$user = $users->createuser($data);
 		
-		return $this->json($user);
+		return $this->json([
+            'status' => 'success',
+            'message' => 'User created successfully',
+            'data' => [
+                'note' => $user
+            ]
+        ]);
 
-		$values = array_values($data);
-
-		$keys = array_keys($data);
-		return $this->json($keys);
 	}
 
 	public function update($post,$id)
@@ -65,14 +112,20 @@ class UserController extends Controller
 
 		$data = [
 			'name' => isset($post['name']) ? $post['name']: null,
-			'email' => $post['email'] ? $post['email']: null,
-			'address' => isset($post['password']) ? $post['password']: null
+			'email' => isset($post['email']) ? $post['email'] : null,
+			'password' => isset($post['password']) ? password_hash($post['password'], PASSWORD_BCRYPT) : null,
+            'role' => isset($value['role']) ? $value['role']: null
 		];
 		
-		$us = $user->updateuser($data,$id);
+		$update = $user->updateuser($data,$id);
 
-		return $this->json($us);
-		return $this->json([$post,$id]);
+        return $this->json([
+            'status' => 'success',
+            'message' => 'User updated successfully',
+            'data' => [
+                'user' => $update
+            ]
+        ]);
 	}
 
 

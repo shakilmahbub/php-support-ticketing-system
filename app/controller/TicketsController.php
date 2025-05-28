@@ -165,7 +165,7 @@ class TicketsController extends Controller
     }
 
 
-    public function assign($post,$id)
+    public function assignTicket($post,$id)
     {
         $ticket = new Tickets;
         $details = $ticket->ticket($id);

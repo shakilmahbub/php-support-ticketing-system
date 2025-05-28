@@ -24,6 +24,14 @@ class DepartmentsController extends Controller
 
     public function store($values)
     {
+        if ($_SESSION['logged_in_user']->role != 'admin')
+        {
+            return $this->json([
+                'status' => 'error',
+                'message' => 'Unauthorized request',
+                'data' => []
+            ],401);
+        }
         if (!isset($values['name']))
         {
             return $this->json([
@@ -81,6 +89,14 @@ class DepartmentsController extends Controller
 
     public function update($post,$id)
     {
+        if ($_SESSION['logged_in_user']->role != 'admin')
+        {
+            return $this->json([
+                'status' => 'error',
+                'message' => 'Unauthorized request',
+                'data' => []
+            ],401);
+        }
         if (!isset($post['name']))
         {
             return $this->json([
@@ -125,6 +141,15 @@ class DepartmentsController extends Controller
 
     public function destroy($id)
     {
+        if ($_SESSION['logged_in_user']->role != 'admin')
+        {
+            return $this->json([
+                'status' => 'error',
+                'message' => 'Unauthorized request',
+                'data' => []
+            ],401);
+        }
+
         if (!$id) {
             return $this->json('Please provide an id',400);
         }
